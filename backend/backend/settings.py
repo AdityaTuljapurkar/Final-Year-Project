@@ -66,13 +66,13 @@ ROOT_URLCONF = 'backend.urls'
 
 CORS_ALLOWED_ORIGINS =[
     "http://localhost:8000",
-   
-
-    
+     "http://localhost:5174",
+     'http://localhost:5173',
 ]
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
@@ -100,7 +100,7 @@ SIMPLE_JWT =  {
     'ROTATE_REFRESH_TOKEN':True,
     'BLACKLIST_AFTER_ROTATION':False,
     'ALGORITHM':'HS256',
-    'SIGINING_KEY':os.getenv("DJANGO_SECRET_KEY",SECRET_KEY),
+     "SIGNING_KEY": os.getenv("DJANGO_SECRET_KEY", SECRET_KEY),
     'AUTH_HEADER_TYPES':('Bearer',),
 }
 WSGI_APPLICATION = 'backend.wsgi.application'

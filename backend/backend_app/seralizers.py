@@ -11,7 +11,7 @@ class Room_seralizer(serializers.ModelSerializer):
         required=False,
         allow_blank=True     
     )
-
+    created_at = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Room 
         fields = ("id", "name", "owner", "created_at", "password")

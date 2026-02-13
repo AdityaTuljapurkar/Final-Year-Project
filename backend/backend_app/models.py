@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import make_password, check_password
 class Room(models.Model):
     name = models.CharField(max_length=50, null=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rooms')
-    created_at = models.DateField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
     password_hash = models.CharField( max_length=350,null=True, blank=True)
 
     class Meta:
