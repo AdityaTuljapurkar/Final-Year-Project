@@ -1,28 +1,30 @@
-import React from 'react'
-import { getRooms } from '../api/rooms'
-function RoomLists() {
-  const [Lists, setLists] = useState('')
-  const roomList=(e)=>{
-    e.preventDefault()
-    getRooms()
-    .then((res)=>{setLists(res.data)
-      localStorage.setLists(res.data)
-    })
-    .theb((res)=>console.log(res.data)
-    )
-    .catch((err)=>{
-      console.log(err)
-    })
-    
-  }
+import React , {useState , useEffect} from "react";
 
+import { getRooms } from "../api/rooms"
+
+export function RoomList(){ 
+  const [rooms, setRoom] = useState([])
+
+  useEffect(()=>{
+    getRooms().then((res)=>{
+      console.log('Rooms Recived : ',res.data);
+      setRoom(res.data)
+      
+    }).catch((err)=>{
+      console.log("ERROR in the data : " , err);
+    })
+  },[]);
   return (
     <div>
-{RoomLists}
-{Lists}
-
+      <h2>Available Rooms</h2>
+      {rooms.map((room)=>{
+        <div key={room.id} className="p-2 border-b border-gray-600">
+          <li>
+            {room.name}
+          </li>
+        </div>
+      })}
     </div>
   )
-}
 
-export default RoomLists
+}
