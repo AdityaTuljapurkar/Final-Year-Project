@@ -41,7 +41,7 @@ def register_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_rooms(request):
-    rooms = Room.objects.filter(owner=request.user)
+    rooms = Room.objects.all()
 
     serializer = Room_seralizer(rooms, many=True)
 
