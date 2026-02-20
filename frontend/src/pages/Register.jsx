@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-// ❌ useState was missing earlier. React does not auto-import hooks.
-
+import { useNavigate } from "react-router";
 import { registerUser } from "../api/auth"
 
 function Register() {
@@ -11,6 +10,7 @@ function Register() {
   const [conformPassword, setConformPassword] = useState("")
   const [valid, setValid] = useState(true)
   const [message, setMessage] = useState("")
+  const navigate = useNavigate()
 
   const handelRegister = (e) => {
     e.preventDefault()
@@ -21,8 +21,6 @@ function Register() {
       return
     }
 
-
-
     registerUser({
       username: username,
       password: password,
@@ -32,6 +30,9 @@ function Register() {
         localStorage.setItem("user", JSON.stringify(res.data))
         setMessage("Registration sucessful !")
         setValid(true)
+        setTimeout(() => {
+          navigate("/login")
+        }, 1500);
       })
       .catch((err) => {
         if(err.response.data.password){ 
@@ -46,7 +47,7 @@ function Register() {
         setValid(false)
       })
 .then((res)=>{
-  console.log('Sucess : ', res.data);
+  console.log('Sucess : ', res.data); 
   localStorage.setItem('access', res.data.access)
   localStorage.setItem('refresh',res.data.refresh)
   setMessage("registration is sucessful !")

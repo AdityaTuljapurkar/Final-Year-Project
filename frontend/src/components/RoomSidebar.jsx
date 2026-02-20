@@ -5,7 +5,7 @@ export default function RoomsSidebar({open}) {
   return (
     <div className="flex flex-col   shrink-0 bg-teal-700 text-amber-50 p-3">
       <h2 className="mb-3 font-semibold">Rooms</h2>
-      jonbjbws
+      <RoomList></RoomList>
     </div>
   );
 }
