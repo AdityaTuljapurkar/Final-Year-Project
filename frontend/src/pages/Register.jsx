@@ -1,4 +1,4 @@
-import React, { useState } from 'react' 
+import React, { useState } from 'react'
 // ❌ useState was missing earlier. React does not auto-import hooks.
 
 import { registerUser } from "../api/auth"
@@ -18,7 +18,7 @@ function Register() {
     if (password !== conformPassword) {
       setValid(false)
       setMessage("your password doesn't match")
-      return 
+      return
     }
 
 
@@ -29,18 +29,33 @@ function Register() {
     })
       .then((res) => {
         console.log(res.data)
-
-
         localStorage.setItem("user", JSON.stringify(res.data))
-      })
-      .catch((err) => {
-        console.log(err)
-      })
- 
-      .finally(() => {
-        setMessage("")
+        setMessage("Registration sucessful !")
         setValid(true)
       })
+      .catch((err) => {
+        if(err.response.data.password){ 
+          setMessage(err.response.data.password[0]);
+        }
+        else if (err.response.data.username){
+          setMessage(err.response.data.username[0]);
+        }
+        else {
+          setMessage('Something went wrong !')
+        }
+        setValid(false)
+      })
+.then((res)=>{
+  console.log('Sucess : ', res.data);
+  localStorage.setItem('access', res.data.access)
+  localStorage.setItem('refresh',res.data.refresh)
+  setMessage("registration is sucessful !")
+  setValid(true)
+})
+      // .finally(() => {
+      //   setMessage("")
+      //   setValid(true)
+      // })
   }
 
   return (
@@ -53,7 +68,8 @@ function Register() {
             <h1 className='text-[#ffc300] text-2xl'>
               Register Your Account
             </h1>
-          </div>
+           </div>
+           <h3 className='text-cyan-400'>NOTE : If the user ID or Password is lost it cant be recovered</h3>
 
           <ul>
 
@@ -69,27 +85,15 @@ function Register() {
             </li>
 
             <li className='py-1'>
-              Email:
-              {/* not wired earlier, kept same pattern */}
-              <input
-                type='text'
-                className='border-[#ffc300] border-b-2 bg-transparent'
-              />
-            </li>
-
-            <li className='py-1'>
               Password :
               <input
                 type='password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className='border-[#ffc300] border-b-2 bg-transparent'
-                />
+              />
             </li>
-                
-                              {!valid && (
-                                <p className='text-red-500 text-sm'>{message}</p>
-                              )}
+
 
             <li className='py-1'>
               Conform Password :
@@ -98,9 +102,12 @@ function Register() {
                 value={conformPassword}
                 onChange={(e) => setConformPassword(e.target.value)}
                 className='border-[#ffc300] border-b-2 bg-transparent'
-              />
+                />
             </li>
 
+                {!valid && (
+                  <p className='text-red-500 text-sm'>{message}</p>
+                )}
           </ul>
 
           <div className='flex justify-center mt-1'>

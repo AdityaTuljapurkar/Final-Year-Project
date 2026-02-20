@@ -12,4 +12,21 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use(
+(config)=>{
+  // looking into browser for token
+  const token = localStorage.getItem('access')
+  // check if there is a token then attach it  
+  if (token){
+    config.headers.Authorization = `Bearer ${token}`
+
+  }
+  return config
+},
+(error)=>{ return Promise.reject(error)
+
+}
+)
+
+
 export default api;

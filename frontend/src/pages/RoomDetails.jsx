@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { getRoomDetails } from "../api/rooms"
-function RoomDetails(open) {
+function RoomDetails({open}) {
   if (open == false) {return null}
   const [room_id, setRoom_id] = useState('')
   const [data, setdata] = useState('')

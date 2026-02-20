@@ -2,7 +2,7 @@ import React , {useState , useEffect} from "react";
 
 import { getRooms } from "../api/rooms"
 
-export function RoomList(){ 
+export default function RoomList(){ 
   const [rooms, setRoom] = useState([])
 
   useEffect(()=>{
@@ -17,13 +17,13 @@ export function RoomList(){
   return (
     <div>
       <h2>Available Rooms</h2>
-      {rooms.map((room)=>{
-        <div key={room.id} className="p-2 border-b border-gray-600">
+      {rooms.map((room)=>(
+        <div key={room.id} className="p-2 border-b border-blue-600">
           <li>
             {room.name}
           </li>
         </div>
-      })}
+      ))}
     </div>
   )
 
