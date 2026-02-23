@@ -11,11 +11,14 @@ class Room_seralizer(serializers.ModelSerializer):
         required=False,
         allow_blank=True     
     )
+    has_password = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Room 
-        fields = ("id", "name", "owner", "created_at", "password")
-        read_only_fields = ("id", "owner", "created_at")
+        fields = ("id", "name", "owner", "created_at", "password","has_password")
+        read_only_fields = ("id", "owner", "created_at") 
+    def get_has_password(self , obj ):
+        return bool(obj.password_hash)
 
     def create(self, validated_data):
 
