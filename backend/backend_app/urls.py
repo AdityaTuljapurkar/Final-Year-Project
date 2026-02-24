@@ -16,10 +16,9 @@ urlpatterns = [
     # Rooms
     path("rooms/", views.get_rooms, name="get_rooms"),
     path("rooms/create/", views.create_rooms, name="create_rooms"),
-
     # Room detail (your view is room_serailizer)
     path("rooms/<int:room_id>/", views.room_serailizer, name="room_detail"),
-
+    path('rooms/<int:room_id>/verify/', views.verify_room_password, name="room_verify"),
     # Messages (your get_message reads ?room_id=)
     # Keep this route if you want query-param style: GET /messages/?room_id=1
     path("messages/", views.get_message, name="get_message"),

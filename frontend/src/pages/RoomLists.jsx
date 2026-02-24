@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { getRooms } from "../api/rooms"
+import { getRooms , verifyRoomPassword } from "../api/rooms"
+import { useNavigate } from "react-router";
 
 export default function RoomList() {
   const [rooms, setRooms] = useState([]) // Changed to setRooms
   const [showPopup, setShowPopup] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [roomPassword, setRoomPassword] = useState("")
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     getRooms().then((res) => {
@@ -25,12 +29,31 @@ export default function RoomList() {
     }
   }
 
-  const handelPopupSubmit = (e) => {
-    e.preventDefault(); // Fixed spelling and changed comma to semicolon
-    console.log(`Trying to enter the room ${selectedRoom.name} with password ${roomPassword} `);
-    setRoomPassword('')
-    setShowPopup(false)
+  const handelPopupSubmit = async(e) => {
+    e.preventDefault()
+    setErrorMsg('')
+    try{
+      const response = await verifyRoomPassword(selectedRoom.id,{ password: roomPassword});
+      console.log("Room backend Resposne : ", response.data.details);
+      //clean up
+      setRoomPassword('')
+      setShowPopup(false)
+      navigate(`/room/${selectedRoom.id}`);
+    }
+    catch(err){
+      const status = err?.response?.status
+      console.log("Room backend Error : ", err?.response?.data || err)
+
+      if (status === 400) {
+        setErrorMsg("Incorrect room password, try again")
+      } else if (status === 401 || status === 403) {
+        setErrorMsg("Session expired. Please log in again")
+      } else {
+        setErrorMsg("Could not verify room right now. Please try again")
+      }
+    }
   }
+
 
   return (
     <div className="w-full h-full bg-teal-800 text-white relative">
@@ -65,6 +88,7 @@ export default function RoomList() {
                 onChange={(e) => setRoomPassword(e.target.value)}
                 autoFocus
               />
+              {errorMsg&&<p className="text-red-400 text-sm mt-1">{errorMsg}</p>}
               
               <div className="flex justify-between mt-2">
                 <button

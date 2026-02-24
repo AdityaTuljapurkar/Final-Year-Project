@@ -87,3 +87,16 @@ def room_serailizer(request, room_id):
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_room_password(request,room_id):
+    room = get_object_or_404(Room , pk = room_id)
+    typed_password = request.data.get("password","")
+
+    #this function already exists in models.py 
+    if room.verfy_password(typed_password):
+        #if it returns true 
+        return Response({"detail":"The room password is coreect "},status=status.HTTP_200_OK)
+        # if it is return false  
+    else : 
+        return Response({"detail":"Entered Wrong room password"},status=status.HTTP_400_BAD_REQUEST)

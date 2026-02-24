@@ -7,7 +7,7 @@ import CreateRooms from "./pages/CreateRoom";
 import Login from "./pages/Login";
 import RoomDetails from "./pages/RoomDetails";
 import RoomsSidebar from "./components/RoomSidebar";
-
+import ChatRoom from "./pages/ChatRoom";
 export default function App() {
 
 const [room_Toggel, setroom_Toggel] = useState(false)
@@ -23,7 +23,7 @@ const dispRoom =()=>{setroom_Toggel((prev)=>!prev)}
           <div className="border-2 flex items-center">
             <Header />
           </div>
-        
+
         </div>
         {/* ----------------------------------------------- */}
         <div className="flex flex-1 border-2 bg-[#37353E] h-screen overflow-y-auto p-4">
@@ -34,6 +34,7 @@ const dispRoom =()=>{setroom_Toggel((prev)=>!prev)}
          <Route path="/Login" element = {<Login/>} />
          <Route path="/room_details" element = {<RoomDetails/>}/>
          <Route path="/create_room" element ={<CreateRooms/>} />
+         <Route path="/room/:roomId" element={<ChatRoom />} />
          </Routes>
         </div>
         </div>

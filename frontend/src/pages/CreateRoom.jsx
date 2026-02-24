@@ -47,6 +47,7 @@ function CreateRoom() {
           <div className='flex justify-center'>
             <h1 className='text-[#468A9A] text-2xl items-center'>Create Room</h1>
           </div>
+          <h3 className='text-yellow-400 text-sm'>NOTE : If the  Password is lost it cant be recovered</h3>
           <ul>
             <li className='py-1'> Room Name:
               <input 
