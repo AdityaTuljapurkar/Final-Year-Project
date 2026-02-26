@@ -1,18 +1,18 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getRoomDetails } from "../api/rooms"
-function RoomDetails({open}) {
-  if (open == false) {return null}
-  const [room_id, setRoom_id] = useState('')
-  const [data, setdata] = useState('')
-  const getData = (e)=>{
-    e.preventDefault()
-    getRoomDetails (room_id)
-    .then((res)=>{
+function RoomDetails({open ,room_id}) {
+  // const [room_id, setRoom_id] = useState('')
+  const [roomdata, setdata] = useState('')
+
+  useEffect(() => {
+    getRoomDetails(room_id).then((res)=>{
+      console.log(res.data);
       setdata(res.data)
-      console.log(res)
+    }).catch((err)=>{
+      console.log('The error in the Room info : ',err );
     })
-    .catch((err)=>console.log(err))
-  }
+  }, [open , room_id])
+  
   
   return (
     <div>
@@ -20,10 +20,10 @@ function RoomDetails({open}) {
       <div className='flex border-red-500 border-2  flex-col'>
         <ul>
           <li>
-            Room Name : {data.room_name}
+            Room Name : {roomdata.name}
           </li>
           <li>
-            BirthDay : {data.created_at}
+            BirthDay : {roomdata.created_at}
           </li>
         </ul>
       </div>

@@ -1,11 +1,16 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { loginUser } from '../api/auth'
-
+import userNameContext from '../components/myContext' 
 import { data, useNavigate } from 'react-router'
-function Login() {
+
+
+function Login() {  
   const [Username, setUsername] = useState('')
   const [Password, setPassword] = useState('')
   const [error, setError] = useState('')
+  
+  //grabing the context setter 
+  const {setUserName_main} = useContext(userNameContext)
   const navigate = useNavigate()
   const handelLogin = (e)=>{
     e.preventDefault();
@@ -17,6 +22,7 @@ function Login() {
     console.log("Tokens: " ,res.data)
     localStorage.setItem('access', res.data.access)
     localStorage.setItem('refresh',res.data.refresh)
+    setUserName_main(Username)
     navigate('/')
   })
   .catch((err)=>{console.log("The backends error : ",err.response.data)

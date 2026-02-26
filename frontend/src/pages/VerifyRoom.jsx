@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router';
 import { verifyRoomPassword } from '../api/rooms';
+import roomNameContext from '../context/RoomName';
 
 function VerifyRoom() {
-  // useParams grabs the ID from the URL (e.g., /verify_room/3)
   const { roomId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // We grab the room name that we passed from RoomLists.jsx
   const roomName = location.state?.roomName || "this room";
-
+  const {setRoom_name} = useContext(roomNameContext)
+  setRoom_name(roomName)
+  
+  
   const [roomPassword, setRoomPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -19,25 +21,25 @@ function VerifyRoom() {
     setErrorMsg("");
 
     try {
-      // NOTE: We are using the "raw string" fix here so Django accepts it!
+      // We pass the raw string state to our fixed api file
       const response = await verifyRoomPassword(roomId, roomPassword);
       
       if (response.status === 200) {
         console.log("Success! Entering room.");
-        navigate(`/room/${roomId}`); // Go to the actual chat room!
+        navigate(`/room/${roomId}`);
       }
     } catch (err) {
+      console.log("Verification error:", err);
       setErrorMsg("Incorrect password. Please try again.");
     }
   }
 
   return (
-    // Styled exactly like your Login.jsx and Register.jsx wrappers
-    <div className=' p-4 flex justify-center items-start pt-20'>
-      <div className='border-2 border-[#468A9A] p-6 rounded-lg w-full max-w-md bg-teal-900'>
+    <div className='p-4 flex justify-center items-start pt-20 h-full w-full'>
+      <div className='border-2 border-[#468A9A] p-6 rounded-lg w-full max-w-md bg-black shadow-lg shadow-teal-500/20'>
         <form className='flex flex-col' onSubmit={handelSubmit}>
           <div className='flex justify-center mb-4'>
-            <h1 className='text-[#ffc300] text-xl'>Enter Password for {roomName}</h1>
+            <h1 className='text-[#ffc300] text-xl'>Enter Password for <span className='text-[#468A9A]'>{roomName}</span></h1>
           </div>
           
           <ul className='flex flex-col gap-4'>
