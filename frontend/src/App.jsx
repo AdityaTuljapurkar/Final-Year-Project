@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import RoomDetails from "./pages/RoomDetails";
 import RoomsSidebar from "./components/RoomSidebar";
 import ChatRoom from "./pages/ChatRoom";
+import VerifyRoom from "./pages/VerifyRoom";
 export default function App() {
 
 const [room_Toggel, setroom_Toggel] = useState(false)
@@ -35,6 +36,7 @@ const dispRoom =()=>{setroom_Toggel((prev)=>!prev)}
          <Route path="/room_details" element = {<RoomDetails/>}/>
          <Route path="/create_room" element ={<CreateRooms/>} />
          <Route path="/room/:roomId" element={<ChatRoom />} />
+         <Route path="/verify_room/:roomId" element={<VerifyRoom />} />
          </Routes>
         </div>
         </div>
