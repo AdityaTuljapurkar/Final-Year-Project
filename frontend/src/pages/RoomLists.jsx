@@ -21,7 +21,8 @@ export default function RoomList() {
       navigate(`/verify_room/${room.id}`, { state: { roomName: room.name } });
     } else {
       // If no password, go straight to the room
-      navigate(`/room/${room.id}`);
+      navigate(`/room/${room.id}`,{state:{roomName : room.name}});
+
     }
   }
 

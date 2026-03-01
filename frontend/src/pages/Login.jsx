@@ -22,6 +22,7 @@ function Login() {
     console.log("Tokens: " ,res.data)
     localStorage.setItem('access', res.data.access)
     localStorage.setItem('refresh',res.data.refresh)
+    localStorage.setItem('username',Username)
     setUserName_main(Username)
     navigate('/')
   })

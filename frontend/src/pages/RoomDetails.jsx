@@ -15,19 +15,29 @@ function RoomDetails({open ,room_id}) {
   
   
   return (
-    <div>
-      {/* {getData} */}
-      <div className='flex border-red-500 border-2  flex-col'>
-        <ul>
-          <li>
-            Room Name : {roomdata.name}
-          </li>
-          <li>
-            BirthDay : {roomdata.created_at}
-          </li>
-        </ul>
-      </div>
-    </div>
+<div className="m-0 p-0">
+  <div className="flex flex-col bg-black/60 p-5 rounded-xl text-pink-200 shadow-md w-fit mt-0">
+    <ul className="space-y-3 text-sm m-0 p-0">
+      <li className="flex gap-2">
+        <span className="font-semibold text-pink-300">Room Name:</span>
+        <span>{roomdata.name}</span>
+      </li>
+
+      <li className="flex gap-2">
+        <span className="font-semibold text-pink-300">Created at:</span>
+        <span>
+          {new Date(roomdata.created_at).toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          })}
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
   )
 }
 
