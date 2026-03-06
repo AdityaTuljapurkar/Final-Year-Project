@@ -7,10 +7,11 @@ import CreateRooms from "./pages/CreateRoom";
 import Login from "./pages/Login";
 import RoomDetails from "./pages/RoomDetails";
 import RoomsSidebar from "./components/RoomSidebar";
-import ChatRoom from "./pages/ChatRoom";
+// import ChatRoom from "./pages/ChatRoom"; // You can likely delete this file now
 import VerifyRoom from "./pages/VerifyRoom";
 import userNameContext from "./components/myContext";
 import roomNameContext from "./context/RoomName";
+import Room from './pages/Room';
 
 export default function App() {
   const [room_Toggel, setroom_Toggel] = useState(false);
@@ -26,22 +27,22 @@ export default function App() {
 
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="border-2 flex items-center shrink-0">
-              <Header /> {/* Now Header can access userName_main! */}
+              <Header /> 
             </div>
 
             <div className="flex-1 flex border-2 bg-[#37353E] overflow-y-auto p-4">
-              <div className="w-full h-full p-3 ml-3.5 mt-3.5 mr-8">
+              <div className="w-full h-full p-3 ml-3.5 mt-0 mr-8">
                 <Routes>
                   <Route path="/Register" element={<Register />} />
                   <Route path="/Login" element={<Login />} />
                   <Route path="/room_details" element={<RoomDetails />} />
                   <Route path="/create_room" element={<CreateRooms />} />
-                  <Route path="/room/:roomId" element={<ChatRoom />} />
                   <Route path="/verify_room/:roomId" element={<VerifyRoom />} />
+                  <Route path="/room/:roomId" element={<Room />} />
                 </Routes>
               </div>
             </div>
-          </div>
+          </div>    
         </div>
       </userNameContext.Provider>
     </roomNameContext.Provider>
