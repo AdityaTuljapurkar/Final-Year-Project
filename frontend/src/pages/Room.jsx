@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react'; // 1. Imported useRef
 import { useParams } from 'react-router';
 import { getMessages } from '../api/message';
 import userNameContext from '../components/myContext';
@@ -9,11 +9,22 @@ export default function Room() {
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
   
-  // Grab the username to send along with the message
+  // 2. Create our invisible anchor
+  const messagesEndRef = useRef(null);
+  
   const { userName_main } = useContext(userNameContext);
 
+  // 3. Create a function that smoothly scrolls down to the anchor
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // 4. Trigger the scroll function every single time the 'messages' array changes
   useEffect(() => {
-    // 1. Fetch old messages first (Now formatted correctly by the serializer!)
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
     getMessages(roomId)
       .then((res) => {
         setMessages(res.data);
@@ -22,20 +33,17 @@ export default function Room() {
         console.log("Error fetching messages:", err);
       });
 
-    // 2. Open the WebSocket connection
     const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${roomId}/`);
     
     ws.onopen = () => console.log("Connected to the chat room!");
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // Instantly add the incoming message to the screen
       setMessages((prev) => [...prev, data]);
     };
 
     setSocket(ws);
 
-    // Clean up the connection when leaving the room
     return () => {
       ws.close();
     };
@@ -45,7 +53,6 @@ export default function Room() {
     e.preventDefault();
     if (!newMessage.trim() || !socket) return;
 
-    // Send the message through the WebSocket
     socket.send(JSON.stringify({
       message: newMessage,
       sender_name: userName_main || "Guest"
@@ -63,14 +70,14 @@ export default function Room() {
           messages.map((msg, index) => (
             <div key={index} className="bg-teal-900 p-3 rounded-lg w-fit max-w-[70%] shadow-md">
               <span className="text-xs text-[#ffc300] font-bold block mb-1">
-                {/* Both HTTP and WebSocket now provide sender_name */}
                 {msg.sender_name || "User"}
               </span>
-              {/* Both HTTP and WebSocket now provide content */}
               <p className="text-sm">{msg.content}</p>
             </div>
           ))
         )}
+        {/* 5. Place the invisible anchor at the very bottom of the message list */}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 bg-gray-900 border-t border-teal-700">
