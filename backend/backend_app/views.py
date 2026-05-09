@@ -1,4 +1,8 @@
 # backend/backend_app/views.py
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import argostranslate.translate
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -9,59 +13,43 @@ from .models import *
 from .seralizers import * 
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http.response import HttpResponse
-
+from langdetect import detect
 @permission_classes([AllowAny])
 def home(request):
     return HttpResponse("<h1>This is the backend </h1> " , status = status.HTTP_200_OK)
     
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
- 
     serializer = User_seralizer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()   
-
         refresh = RefreshToken.for_user(user)
         return Response(
             {
-
                 'user': User_seralizer(user).data,
                 'access': str(refresh.access_token),
-
                 'refresh': str(refresh),
             },
             status=status.HTTP_201_CREATED
         )
-
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_rooms(request):
     rooms = Room.objects.all()
-
     serializer = Room_seralizer(rooms, many=True)
-
     return Response(serializer.data)
-
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_rooms(request):
-
     serializer = Room_seralizer(data=request.data)
     if serializer.is_valid():
-
         room = serializer.save(owner=request.user)
         return Response(Room_seralizer(room).data, status=status.HTTP_201_CREATED)
-
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -70,22 +58,17 @@ def get_message(request):
     if not room_id:
         return Response({"detail": "room_id query parameter required"}, status=status.HTTP_400_BAD_REQUEST)
 
-
     room = get_object_or_404(Room, pk=room_id)
     messages = Message.objects.filter(room=room)
     serializer = Message_seralizer(messages, many=True)
     return Response(serializer.data)
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def room_serailizer(request, room_id):
-
     room = get_object_or_404(Room, pk=room_id)
     serializer = Room_seralizer(room)
     return Response(serializer.data)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -98,5 +81,47 @@ def verify_room_password(request,room_id):
         #if it returns true 
         return Response({"detail":"The room password is coreect "},status=status.HTTP_200_OK)
         # if it is return false  
-    else : 
+    else: 
         return Response({"detail":"Entered Wrong room password"},status=status.HTTP_400_BAD_REQUEST)
+    
+@csrf_exempt
+def translate_message(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            raw_text = data.get('text', '')
+            target_lang = data.get('target_lang', 'en')
+            
+            # --- NEW: THE AI POLISHER ---
+            # Capitalize the first letter and ensure it has punctuation
+            text = raw_text.strip()
+            if text:
+                text = text[0].upper() + text[1:]
+                if text[-1] not in ".!?":
+                    text += "."
+            # ----------------------------
+
+            # 1. AUTO-DETECT THE SOURCE LANGUAGE
+            try:
+                source_lang = detect(text) 
+            except:
+                source_lang = 'en'
+            
+            # 2. Bypass AI if they are already the same language!
+            if source_lang == target_lang:
+                return JsonResponse({'translated_text': raw_text}, status=200)
+            
+            # 3. Dynamic Translation!
+            translated_text = argostranslate.translate.translate(text, source_lang, target_lang)
+            
+            # (Optional) Strip the artificial period if we added one, to keep UI clean
+            if raw_text and raw_text[-1] not in ".!?" and translated_text.endswith("."):
+                translated_text = translated_text[:-1]
+
+            return JsonResponse({'translated_text': translated_text}, status=200)
+            
+        except Exception as e:
+            print(f"Argos Translation Error: {e}") 
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Invalid request'}, status=400)
