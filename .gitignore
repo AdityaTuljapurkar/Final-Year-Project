@@ -60,3 +60,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+gemini.txt
+DOCKER_LEARNING_PROGRESS.md
