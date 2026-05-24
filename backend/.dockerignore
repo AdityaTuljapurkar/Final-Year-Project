@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Environments
+env/
+env311/
+venv/
+.venv/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+
+# Database
+**/db.sqlite3
+**/db.sqlite3-journal
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment Variables
+.env
+.env*
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Media and Static
+**/media/
+**/staticfiles/

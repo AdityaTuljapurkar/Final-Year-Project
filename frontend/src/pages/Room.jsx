@@ -9,6 +9,7 @@ export default function Room() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
   
   // NEW: State to hold translated texts and loading status
   const [translations, setTranslations] = useState({}); 
@@ -27,9 +28,12 @@ export default function Room() {
   useEffect(() => {
     getMessages(roomId).then((res) => setMessages(res.data));
 
-    // Simple WebSocket connection (no more lang parameters!)
     const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${roomId}/`);
     
+    ws.onopen = () => setIsConnected(true);
+    ws.onclose = () => setIsConnected(false);
+    ws.onerror = () => setIsConnected(false);
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setMessages((prev) => [...prev, data]);
@@ -40,7 +44,7 @@ export default function Room() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket) return;
+    if (!newMessage.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
 
     socket.send(JSON.stringify({
       message: newMessage,
@@ -73,22 +77,30 @@ export default function Room() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-teal-900/70 text-white w-full rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-teal-900/70 dark:bg-obsidian-bg text-white dark:text-obsidian-text w-full rounded-lg overflow-hidden transition-colors duration-300 relative">
+      
+      {/* Connection Status Indicator */}
+      {!isConnected && (
+        <div className="absolute top-0 left-0 w-full bg-red-500/80 text-[10px] text-center py-1 z-10 animate-pulse">
+          Disconnected. Trying to reconnect...
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         {messages.map((msg, index) => (
-          <div key={index} className="bg-teal-900 p-3 rounded-lg w-fit max-w-[70%] shadow-md">
+          <div key={index} className="bg-teal-900 dark:bg-gray-900 p-3 rounded-lg w-fit max-w-[70%] shadow-md border dark:border-obsidian-border">
             <span className="text-xs text-[#ffc300] font-bold block mb-1">
               {msg.sender_name || "User"}
             </span>
             
             {/* The Original Message */}
-            <p className="text-sm">{msg.content}</p>
+            <p className="text-sm dark:text-obsidian-text">{msg.content}</p>
             
             {/* Instagram Style: "See translation" Button */}
             {!translations[index] && (
               <button 
                 onClick={() => handleTranslateClick(index, msg.content)}
-                className="text-[11px] text-gray-400 font-semibold mt-1 hover:text-white transition-colors cursor-pointer block text-left"
+                className="text-[11px] text-gray-400 dark:text-obsidian-secondary font-semibold mt-1 hover:text-white dark:hover:text-obsidian-text transition-colors cursor-pointer block text-left"
               >
                 {translatingIndex === index ? "Translating..." : "See translation"}
               </button>
@@ -96,8 +108,8 @@ export default function Room() {
 
             {/* The Translated Message (Reveals after clicking) */}
             {translations[index] && (
-              <div className="mt-2 pt-2 border-t border-teal-700/50">
-                <p className="text-sm font-medium text-teal-200">{translations[index]}</p>
+              <div className="mt-2 pt-2 border-t border-teal-700/50 dark:border-obsidian-border">
+                <p className="text-sm font-medium text-teal-200 dark:text-[#ffc300]">{translations[index]}</p>
               </div>
             )}
           </div>
@@ -105,16 +117,21 @@ export default function Room() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-gray-900 border-t border-teal-700">
+      <div className="p-4 bg-gray-900 dark:bg-obsidian-bg border-t border-teal-700 dark:border-obsidian-border">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
-            className="flex-1 bg-transparent border border-teal-600 rounded-full px-4 py-2 text-white outline-none focus:border-[#ffc300]"
-            placeholder="Type your message..."
+            className="flex-1 bg-transparent border border-teal-600 dark:border-obsidian-border rounded-full px-4 py-2 text-white dark:text-obsidian-text outline-none focus:border-[#ffc300] dark:focus:border-teal-500 transition-colors disabled:opacity-50"
+            placeholder={isConnected ? "Type your message..." : "Connecting..."}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            disabled={!isConnected}
           />
-          <button type="submit" className="bg-[#ffc300] text-black font-bold px-6 py-2 rounded-full cursor-pointer">
+          <button 
+            type="submit" 
+            className="bg-[#ffc300] text-black font-bold px-6 py-2 rounded-full cursor-pointer hover:bg-amber-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isConnected || !newMessage.trim()}
+          >
             Send
           </button>
         </form>

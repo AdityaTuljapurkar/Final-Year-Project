@@ -17,26 +17,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, room_id, text_content, sender_username):
-        room = Room.objects.get(id=room_id)
-        user = User.objects.get(username=sender_username)
-        return Message.objects.create(room=room, message_content=text_content, sender=user)
+        try:
+            room = Room.objects.get(id=room_id)
+            # Find the user or default to None if it's a Guest/Unknown user
+            user = User.objects.filter(username=sender_username).first()
+            return Message.objects.create(room=room, message_content=text_content, sender=user)
+        except Exception as e:
+            print(f"Error saving message: {e}")
+            return None
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        sender_name = text_data_json.get('sender_name', 'Guest')
+        try:
+            text_data_json = json.loads(text_data)
+            message = text_data_json['message']
+            sender_name = text_data_json.get('sender_name', 'Guest')
 
-        await self.save_message(self.room_id, message, sender_name)
+            # We still broadcast even if saving fails for some reason
+            await self.save_message(self.room_id, message, sender_name)
 
-        # Just broadcast the message instantly!
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'sender_name': sender_name
-            }
-        )
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'sender_name': sender_name
+                }
+            )
+        except Exception as e:
+            print(f"WebSocket receive error: {e}")
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({

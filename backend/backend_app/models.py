@@ -33,7 +33,7 @@ class Room(models.Model):
 
 class Message(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
     message_content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
 
@@ -42,5 +42,6 @@ class Message(models.Model):
 
     def __str__(self):
         # FIX: message_content is a string, so use len() not >
+        sender_name = self.sender.username if self.sender else "Guest"
         short = (self.message_content[:20] + " ...") if len(self.message_content) > 20 else self.message_content
-        return f"{self.sender.username}@{self.room.name} -> {short}"
+        return f"{sender_name}@{self.room.name} -> {short}"

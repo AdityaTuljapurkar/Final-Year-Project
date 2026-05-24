@@ -9,11 +9,14 @@ from channels.auth import AuthMiddlewareStack
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-# THE FIX: We import from backend_app, not backend
+# Initialize Django ASGI application early to ensure the app registry is ready
+django_asgi_app = get_asgi_application()
+
+# Now we can safely import our routing which might depend on Django models
 from backend_app.routing import websocket_urlpatterns 
 
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
         URLRouter(
             websocket_urlpatterns

@@ -2,7 +2,7 @@
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import argostranslate.translate
+from deep_translator import GoogleTranslator
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -95,10 +95,12 @@ def translate_message(request):
             # --- NEW: THE AI POLISHER ---
             # Capitalize the first letter and ensure it has punctuation
             text = raw_text.strip()
-            if text:
-                text = text[0].upper() + text[1:]
-                if text[-1] not in ".!?":
-                    text += "."
+            if not text:
+                return JsonResponse({'translated_text': ''}, status=200)
+
+            text = text[0].upper() + text[1:]
+            if text[-1] not in ".!?":
+                text += "."
             # ----------------------------
 
             # 1. AUTO-DETECT THE SOURCE LANGUAGE
@@ -107,12 +109,12 @@ def translate_message(request):
             except:
                 source_lang = 'en'
             
-            # 2. Bypass AI if they are already the same language!
+            # 2. Bypass if they are already the same language!
             if source_lang == target_lang:
                 return JsonResponse({'translated_text': raw_text}, status=200)
             
-            # 3. Dynamic Translation!
-            translated_text = argostranslate.translate.translate(text, source_lang, target_lang)
+            # 3. Dynamic Translation via deep-translator (Google)
+            translated_text = GoogleTranslator(source=source_lang, target=target_lang).translate(text)
             
             # (Optional) Strip the artificial period if we added one, to keep UI clean
             if raw_text and raw_text[-1] not in ".!?" and translated_text.endswith("."):
@@ -121,7 +123,7 @@ def translate_message(request):
             return JsonResponse({'translated_text': translated_text}, status=200)
             
         except Exception as e:
-            print(f"Argos Translation Error: {e}") 
+            print(f"Translation Error: {e}") 
             return JsonResponse({'error': str(e)}, status=400)
             
     return JsonResponse({'error': 'Invalid request'}, status=400)

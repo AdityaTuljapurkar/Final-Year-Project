@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@theme {
+  --color-obsidian-bg: #0D0D0D;
+  --color-obsidian-text: #EDEDED;
+  --color-obsidian-secondary: #737373;
+  --color-obsidian-border: #262626;
+  
+  --shadow-glow: 0 0 15px rgba(255, 195, 0, 0.4);
+  --shadow-glow-teal: 0 0 15px rgba(20, 184, 166, 0.5);
+}
+
+@layer base {
+  :root {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  
+  html.dark {
+    background-color: #0D0D0D;
+    color: #EDEDED;
+  }
+}
+
+@utility icon-glow {
+  filter: drop-shadow(0 0 8px rgba(255, 195, 0, 0.6));
+}
+
+@utility icon-glow-teal {
+  filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.6));
+}

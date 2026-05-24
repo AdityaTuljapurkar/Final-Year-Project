@@ -16,16 +16,21 @@ function RoomDetails({open ,room_id}) {
   
   return (
 <div className="m-0 p-0">
-  <div className="flex flex-col bg-black/60 p-5 rounded-xl text-pink-200 shadow-md w-fit mt-0">
+  <div className="flex flex-col bg-gray-900/95 dark:bg-black/90 p-5 rounded-xl text-white shadow-2xl border border-gray-700 dark:border-obsidian-border w-fit mt-0">
     <ul className="space-y-3 text-sm m-0 p-0">
       <li className="flex gap-2">
-        <span className="font-semibold text-pink-300">Room Name:</span>
-        <span>{roomdata.name}</span>
+        <span className="font-semibold text-[#ffc300]">Room Name:</span>
+        <span className="font-medium">{roomdata.name}</span>
       </li>
 
       <li className="flex gap-2">
-        <span className="font-semibold text-pink-300">Created at:</span>
-        <span>
+        <span className="font-semibold text-[#ffc300]">Owner:</span>
+        <span className="font-medium">{roomdata.owner}</span>
+      </li>
+
+      <li className="flex gap-2">
+        <span className="font-semibold text-[#ffc300]">Created at:</span>
+        <span className="text-gray-300 font-medium">
           {new Date(roomdata.created_at).toLocaleString("en-IN", {
             day: "2-digit",
             month: "long",
@@ -38,7 +43,8 @@ function RoomDetails({open ,room_id}) {
     </ul>
   </div>
 </div>
-  )
+
+)
 }
 
 export default RoomDetails

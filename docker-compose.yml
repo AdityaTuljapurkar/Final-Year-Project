@@ -1,0 +1,38 @@
+version: '3.8'
+
+services: 
+  backend: 
+    build: ./backend 
+    ports: 
+      - "8000:8000"
+    volumes:  
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+  
+  frontend: 
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_module 
+    stdin_open: true
+    tty: true  
+
+  db:
+    image: postgres:15
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+volumes: 
+  postgres_data:

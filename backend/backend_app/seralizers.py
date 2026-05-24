@@ -31,15 +31,16 @@ class Room_seralizer(serializers.ModelSerializer):
 
 
 class Message_seralizer(serializers.ModelSerializer):
-    # THE FIX: Map the database fields to match the WebSocket exact naming
-    sender_name = serializers.CharField(source='sender.username', read_only=True)
+    sender_name = serializers.SerializerMethodField()
     content = serializers.CharField(source='message_content', read_only=True)
 
     class Meta:
         model = Message
-        # Swap out the old names for our new matching names
         fields = ("id", "room", "sender_name", "content", "timestamp")
         read_only_fields = ("id", "room", "timestamp")
+
+    def get_sender_name(self, obj):
+        return obj.sender.username if obj.sender else "Guest"
 
 
 class User_seralizer(serializers.ModelSerializer):

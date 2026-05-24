@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 import RoomDetails from "./RoomDetails";
 import userNameContext from "./myContext";
 import roomNameContext from "../context/RoomName";
 import { getRoomDetails } from "../api/rooms"; 
 import profilePhoto from "../icons/profile.png";
+import { useTheme } from "./ThemeContext";
 
 // NEW: Import the Context
 import { LanguageContext } from "./LanguageContext.jsx"; 
 
 export default function Header() {
+  const { isDarkMode, toggleTheme } = useTheme();
   const [toggleInfo, setToggleInfo] = useState(false);
   const handelToggle = () => (setToggleInfo((prev) => !prev));
   
@@ -45,10 +47,10 @@ export default function Header() {
   }, [popUp, room_id]); 
 
   return (
-    <div className="bg-gray-800 text-[#ffff] flex justify-between items-center w-screen py-2 px-4 font-bold border-b border-gray-700">
+    <div className="bg-gray-800 dark:bg-black/40 text-[#ffff] flex justify-between items-center w-screen py-2 px-4 font-bold border-b border-gray-700 dark:border-obsidian-border transition-colors duration-300">
       
       <div className="flex gap-4 items-center">
-        <h2 className="text-lg px-2 font-medium">Logo</h2> 
+        <h2 className="text-lg px-2 font-medium">Logo</h2>
         {popUp && (
           <div className="relative">
             <button onClick={handelToggle} className="text-[#ffc300] bg-transparent px-4 py-1 rounded-full hover:bg-gray-900 cursor-pointer">
@@ -68,7 +70,7 @@ export default function Header() {
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center gap-3 focus:outline-none cursor-pointer hover:opacity-80 transition-opacity text-left bg-transparent border-none"
         >
-          <img src={profilePhoto} alt="User profile" className="h-9 w-9 rounded-full object-cover ring-2 ring-transparent hover:ring-teal-500 transition-all" />
+          {/* <img src={profilePhoto} alt="User profile" className="h-9 w-9 rounded-full object-cover ring-2 ring-transparent hover:ring-teal-500 transition-all" /> */}
           <h3 className="text-sm text-gray-400 font-normal mt-1 m-0">
             user: <span className="text-white">{userName_main || "Guest"}</span>
             <span className="ml-2 text-[10px] bg-teal-900 text-[#ffc300] px-1.5 py-0.5 rounded font-bold uppercase">{userLanguage || "EN"}</span>
