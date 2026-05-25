@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+**/node_modules/
 
 # Build output
 dist/
@@ -32,3 +33,5 @@ yarn-error.log*
 # Other
 README.md
 .eslintcache
+.npm/
+.cache/

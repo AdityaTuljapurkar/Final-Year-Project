@@ -35,6 +35,8 @@ class Message(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
     message_content = models.TextField()
+    iv = models.CharField(max_length=100, null=True, blank=True)
+    is_encrypted = models.BooleanField(default=False)
     timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta:

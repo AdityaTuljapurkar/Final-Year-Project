@@ -26,7 +26,8 @@ function VerifyRoom() {
       
       if (response.status === 200) {
         console.log("Success! Entering room.");
-        navigate(`/room/${roomId}`);
+        // Pass the password to the room so it can be used for E2EE decryption
+        navigate(`/room/${roomId}`, { state: { roomPassword: roomPassword, roomName: roomName } });
       }
     } catch (err) {
       console.log("Verification error:", err);

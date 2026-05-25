@@ -13,6 +13,8 @@ venv/
 **/*.py[cod]
 **/*.pyo
 **/*.pyd
+.pytest_cache/
+.mypy_cache/
 
 # Database
 **/db.sqlite3

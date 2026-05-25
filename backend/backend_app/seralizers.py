@@ -36,7 +36,7 @@ class Message_seralizer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ("id", "room", "sender_name", "content", "timestamp")
+        fields = ("id", "room", "sender_name", "content", "timestamp", "iv", "is_encrypted")
         read_only_fields = ("id", "room", "timestamp")
 
     def get_sender_name(self, obj):
