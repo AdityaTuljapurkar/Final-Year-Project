@@ -17,6 +17,11 @@ class Room_seralizer(serializers.ModelSerializer):
         model = Room 
         fields = ("id", "name", "owner", "created_at", "password", "has_password")
         read_only_fields = ("id", "owner", "created_at") 
+
+    def validate_name(self, value):
+        if Room.objects.filter(name=value).exists():
+            raise serializers.ValidationError("A room with this name already exists. Please choose a different name.")
+        return value
         
     def get_has_password(self, obj):
         return bool(obj.password_hash)

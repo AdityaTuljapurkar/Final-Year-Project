@@ -23,14 +23,14 @@ export default function Navbar({onToggleRoom}) {
         </div>
 
         {/* AI Chatbot */}
-        <div className="group relative">
+        {/* <div className="group relative">
           <Link to={"/AI"} className="block text-left px-1 py-3 rounded cursor-pointer transition-all group/btn">
             <img src={AI} alt="AI" className="w-[35px] transition-all group-hover/btn:scale-110 group-hover/btn:icon-glow-teal" />
           </Link>
           <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 dark:bg-black text-white text-[11px] rounded opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 translate-x-[-10px] group-hover:translate-x-0 shadow-2xl border border-white/10 dark:border-obsidian-border font-medium">
             AI Assistant
           </span>
-        </div>
+        </div> */}
 
         {/* Feedback */}
         <div className="group relative">
