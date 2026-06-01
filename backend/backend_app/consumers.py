@@ -59,5 +59,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'content': event['message'],
             'sender_name': event['sender_name'],
             'iv': event.get('iv'),
-            'is_encrypted': event.get('is_encrypted', False)
+            'is_encrypted': event.get('is_encrypted', False),
+            'file_url': event.get('file_url'),
+            'file_name': event.get('file_name'),
+            'file_type': event.get('file_type'),
         }))

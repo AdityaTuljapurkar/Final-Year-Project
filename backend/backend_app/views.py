@@ -14,6 +14,9 @@ from .seralizers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http.response import HttpResponse
 from langdetect import detect
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 @permission_classes([AllowAny])
 def home(request):
     return HttpResponse("<h1>This is the backend </h1> " , status = status.HTTP_200_OK)
@@ -83,6 +86,46 @@ def verify_room_password(request,room_id):
         # if it is return false  
     else: 
         return Response({"detail":"Entered Wrong room password"},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_file_message(request):
+    room_id = request.data.get('room')
+    if not room_id:
+        return Response({"detail": "room id required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    room = get_object_or_404(Room, pk=room_id)
+    
+    # We use the serializer to save the message
+    # Note: message_content might be encrypted text or empty
+    serializer = Message_seralizer(data=request.data)
+    if serializer.is_valid():
+        # Manual save to associate room and sender
+        message = serializer.save(
+            room=room,
+            sender=request.user,
+            message_content=request.data.get('message_content', '')
+        )
+        
+        # Broadcast to WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{room_id}",
+            {
+                "type": "chat_message",
+                "message": message.message_content,
+                "sender_name": request.user.username,
+                "iv": message.iv,
+                "is_encrypted": message.is_encrypted,
+                "file_url": message.file.url if message.file else None,
+                "file_name": message.file_name,
+                "file_type": message.file_type,
+            }
+        )
+        
+        return Response(Message_seralizer(message).data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @csrf_exempt
 def translate_message(request):

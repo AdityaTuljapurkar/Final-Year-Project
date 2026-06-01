@@ -54,13 +54,13 @@ export async function deriveKeyFromPassword(password, salt) {
  * @param {string} plainText - The message you want to send.
  * @param {CryptoKey} key - The strong key we got from the "blender."
  */
-export async function encryptMessage(plainText, key) {
+export async function encryptMessage(plainText, key, customIv = null) {
   const encoder = new TextEncoder();
   const data = encoder.encode(plainText);
   
   // The IV (Initialization Vector) is a random "start position" for the lock.
   // It MUST be different for every single message.
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv = customIv || crypto.getRandomValues(new Uint8Array(12));
   
   const encryptedBuffer = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv },
@@ -97,6 +97,48 @@ export async function decryptMessage(encryptedDataBase64, ivBase64, key) {
   } catch (e) {
     // If the password or key is wrong, the browser throws an error.
     console.error("Decryption failed! The key or data might be wrong.", e);
+    return null;
+  }
+}
+
+/**
+ * 4. THE VAULT (File Encryption)
+ * 
+ * Scrambles a file into a ciphertext blob.
+ */
+export async function encryptFile(file, key) {
+  const arrayBuffer = await file.arrayBuffer();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    arrayBuffer
+  );
+
+  return {
+    encryptedBlob: new Blob([encryptedBuffer]),
+    iv: btoa(String.fromCharCode(...iv))
+  };
+}
+
+/**
+ * 5. THE SKELETON KEY (File Decryption)
+ * 
+ * Turns a ciphertext buffer back into a usable ArrayBuffer.
+ */
+export async function decryptFile(encryptedBuffer, ivBase64, key) {
+  const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+
+  try {
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encryptedBuffer
+    );
+    return decryptedBuffer;
+  } catch (e) {
+    console.error("File decryption failed:", e);
     return null;
   }
 }

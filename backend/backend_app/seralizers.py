@@ -38,14 +38,20 @@ class Room_seralizer(serializers.ModelSerializer):
 class Message_seralizer(serializers.ModelSerializer):
     sender_name = serializers.SerializerMethodField()
     content = serializers.CharField(source='message_content', read_only=True)
+    file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ("id", "room", "sender_name", "content", "timestamp", "iv", "is_encrypted")
-        read_only_fields = ("id", "room", "timestamp")
+        fields = ("id", "room", "sender_name", "content", "timestamp", "iv", "is_encrypted", "file", "file_name", "file_type", "file_url")
+        read_only_fields = ("id", "room", "timestamp", "file_url")
 
     def get_sender_name(self, obj):
         return obj.sender.username if obj.sender else "Guest"
+
+    def get_file_url(self, obj):
+        if obj.file:
+            return obj.file.url
+        return None
 
 
 class User_seralizer(serializers.ModelSerializer):

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useLocation } from 'react-router';
-import { getMessages } from '../api/message';
+import { getMessages, uploadFileMessage } from '../api/message';
 import { getRoomDetails } from '../api/rooms';
-import { deriveKeyFromPassword, encryptMessage, decryptMessage } from '../utils/crypto';
+import { deriveKeyFromPassword, encryptMessage, decryptMessage, encryptFile } from '../utils/crypto';
 import userNameContext from '../components/myContext';
 import { LanguageContext } from '../components/LanguageContext.jsx'; 
+import FileRenderer from '../components/FileRenderer';
 
 export default function Room() {
   const { roomId } = useParams();
@@ -14,6 +15,11 @@ export default function Room() {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   
+  // File state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
   // E2EE State
   const [roomKey, setRoomKey] = useState(null);
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
@@ -125,24 +131,78 @@ export default function Room() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
+    if ((!newMessage.trim() && !selectedFile) || !socket || socket.readyState !== WebSocket.OPEN) return;
 
-    let messageData = {
-      message: newMessage,
-      sender_name: userName_main || "Guest",
-      is_encrypted: false
-    };
+    setIsUploading(true);
+    try {
+      if (selectedFile) {
+        // Handle File Upload via REST
+        const formData = new FormData();
+        formData.append('room', roomId);
+        formData.append('file_name', selectedFile.name);
+        formData.append('file_type', selectedFile.type);
 
-    // If we have a key, encrypt the message!
-    if (roomKey) {
-      const { encryptedData, iv } = await encryptMessage(newMessage, roomKey);
-      messageData.message = encryptedData;
-      messageData.iv = iv;
-      messageData.is_encrypted = true;
+        let finalMessageContent = newMessage;
+        let finalIv = null;
+        let isEncrypted = false;
+
+        if (roomKey) {
+          // Encrypt file
+          const arrayBuffer = await selectedFile.arrayBuffer();
+          const ivBytes = crypto.getRandomValues(new Uint8Array(12));
+          const fileIvBase64 = btoa(String.fromCharCode(...ivBytes));
+          
+          const encryptedFileBuffer = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: ivBytes },
+            roomKey,
+            arrayBuffer
+          );
+
+          formData.append('file', new Blob([encryptedFileBuffer]), selectedFile.name);
+          formData.append('iv', fileIvBase64);
+          formData.append('is_encrypted', true);
+          isEncrypted = true;
+          finalIv = fileIvBase64;
+
+          // Also encrypt the text message if any, reusing the SAME IV
+          if (newMessage.trim()) {
+            const { encryptedData } = await encryptMessage(newMessage, roomKey, ivBytes);
+            finalMessageContent = encryptedData;
+          }
+        } else {
+          formData.append('file', selectedFile);
+          formData.append('is_encrypted', false);
+        }
+
+        formData.append('message_content', finalMessageContent);
+        await uploadFileMessage(formData);
+        
+        setSelectedFile(null);
+        setNewMessage("");
+      } else {
+        // Standard text message via WebSocket
+        let messageData = {
+          message: newMessage,
+          sender_name: userName_main || "Guest",
+          is_encrypted: false
+        };
+
+        if (roomKey) {
+          const { encryptedData, iv } = await encryptMessage(newMessage, roomKey);
+          messageData.message = encryptedData;
+          messageData.iv = iv;
+          messageData.is_encrypted = true;
+        }
+
+        socket.send(JSON.stringify(messageData));
+        setNewMessage(""); 
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      alert("Error sending message.");
+    } finally {
+      setIsUploading(false);
     }
-
-    socket.send(JSON.stringify(messageData));
-    setNewMessage(""); 
   };
 
   // NEW: The function that runs when you click "See translation"
@@ -209,10 +269,22 @@ export default function Room() {
             </span>
             
             {/* The Original Message */}
-            <p className="text-sm dark:text-obsidian-text">{msg.content}</p>
+            {msg.content && <p className="text-sm dark:text-obsidian-text">{msg.content}</p>}
+
+            {/* File Attachment */}
+            {(msg.file_url || msg.file) && (
+              <FileRenderer 
+                fileUrl={msg.file_url || msg.file}
+                fileName={msg.file_name}
+                fileType={msg.file_type}
+                iv={msg.iv}
+                isEncrypted={msg.is_encrypted}
+                roomKey={roomKey}
+              />
+            )}
             
             {/* Instagram Style: "See translation" Button */}
-            {!translations[index] && (
+            {msg.content && !translations[index] && (
               <button 
                 onClick={() => handleTranslateClick(index, msg.content)}
                 className="text-[11px] text-gray-400 dark:text-obsidian-secondary font-semibold mt-1 hover:text-white dark:hover:text-obsidian-text transition-colors cursor-pointer block text-left"
@@ -233,21 +305,50 @@ export default function Room() {
       </div>
 
       <div className="p-4 bg-gray-900 dark:bg-obsidian-bg border-t border-teal-700 dark:border-obsidian-border">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+        {/* File Preview Chip */}
+        {selectedFile && (
+          <div className="mb-2 flex items-center gap-2 bg-teal-800/50 p-2 rounded-lg border border-teal-600 w-fit">
+            <span className="text-xs truncate max-w-[200px]">{selectedFile.name}</span>
+            <button 
+              onClick={() => setSelectedFile(null)}
+              className="text-red-400 hover:text-red-300 font-bold px-1"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            onChange={(e) => setSelectedFile(e.target.files[0])}
+            accept="image/*,.pdf,.txt"
+          />
+          <button 
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            className="bg-teal-700 hover:bg-teal-600 text-white p-2 rounded-full transition-colors flex items-center justify-center w-10 h-10 shrink-0"
+            disabled={isUploading}
+          >
+            📎
+          </button>
+
           <input
             type="text"
             className="flex-1 bg-transparent border border-teal-600 dark:border-obsidian-border rounded-full px-4 py-2 text-white dark:text-obsidian-text outline-none focus:border-[#ffc300] dark:focus:border-teal-500 transition-colors disabled:opacity-50"
-            placeholder={isConnected ? "Type your message..." : "Connecting..."}
+            placeholder={isUploading ? "Uploading..." : (isConnected ? "Type your message..." : "Connecting...")}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            disabled={!isConnected}
+            disabled={!isConnected || isUploading}
           />
           <button 
             type="submit" 
-            className="bg-[#ffc300] text-black font-bold px-6 py-2 rounded-full cursor-pointer hover:bg-amber-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!isConnected || !newMessage.trim()}
+            className="bg-[#ffc300] text-black font-bold px-6 py-2 rounded-full cursor-pointer hover:bg-amber-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-10"
+            disabled={!isConnected || isUploading || (!newMessage.trim() && !selectedFile)}
           >
-            Send
+            {isUploading ? "..." : "Send"}
           </button>
         </form>
       </div>

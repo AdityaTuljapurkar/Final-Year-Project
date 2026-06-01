@@ -12,3 +12,12 @@ export const sendMessage = (room_id, content) => {
     content: content 
   });
 };
+
+// Upload a file message (encrypted or plain)
+export const uploadFileMessage = (formData) => {
+  return api.post(`messages/upload/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};

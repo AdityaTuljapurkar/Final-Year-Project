@@ -34,7 +34,10 @@ class Room(models.Model):
 class Message(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
-    message_content = models.TextField()
+    message_content = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='chat_files/', null=True, blank=True)
+    file_name = models.CharField(max_length=255, null=True, blank=True)
+    file_type = models.CharField(max_length=100, null=True, blank=True)
     iv = models.CharField(max_length=100, null=True, blank=True)
     is_encrypted = models.BooleanField(default=False)
     timestamp = models.DateTimeField(default=timezone.now)

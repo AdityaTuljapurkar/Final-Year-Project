@@ -21,6 +21,7 @@ urlpatterns = [
     
     # Messages 
     path("messages/", views.get_message, name="get_message"),
+    path("messages/upload/", views.upload_file_message, name="upload_message"),
 
     # NEW: The Translation Endpoint!
     path("translate/", views.translate_message, name="translate_message"),
